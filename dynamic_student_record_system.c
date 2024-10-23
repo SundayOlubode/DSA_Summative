@@ -320,6 +320,39 @@ void rb_delete_fixup(student_t *x)
         x->color = BLACK;
 }
 
+void inorder_traversal(student_t *node)
+{
+        if (node != NIL)
+        {
+                inorder_traversal(node->left);
+                printf("ID: %d, Name: %s, Grade: %.2f\n", node->id, node->name, node->grade);
+                inorder_traversal(node->right);
+        }
+}
+
+student_t *search_student(int id)
+{
+        student_t *current = root;
+        while (current != NIL && current->id != id)
+        {
+                if (id < current->id)
+                        current = current->left;
+                else
+                        current = current->right;
+        }
+        return current;
+}
+
+void update_student(int id, char *new_name, float new_grade)
+{
+        student_t *student = search_student(id);
+        if (student != NIL)
+        {
+                strcpy(student->name, new_name);
+                student->grade = new_grade;
+        }
+}
+
 void delete_student(int id)
 {
         student_t *z = search_student(id);
@@ -367,41 +400,4 @@ void delete_student(int id)
 
         free(z);
         printf("Student with ID %d deleted.\n", id);
-}
-
-student_t *search_student(int id)
-{
-        student_t *current = root;
-        while (current != NIL && current->id != id)
-        {
-                if (id < current->id)
-                        current = current->left;
-                else
-                        current = current->right;
-        }
-        return current;
-}
-
-void inorder_traversal(student_t *node)
-{
-        if (node != NIL)
-        {
-                inorder_traversal(node->left);
-                printf("ID: %d, Name: %s, Grade: %.2f\n", node->id, node->name, node->grade);
-                inorder_traversal(node->right);
-        }
-}
-
-void update_student(int id, char *new_name, float new_grade)
-{
-        student_t *student = search_student(id);
-        if (student != NIL)
-        {
-                strcpy(student->name, new_name);
-                student->grade = new_grade;
-        }
-        else
-        {
-                printf("Student with ID %d not found.\n", id);
-        }
 }

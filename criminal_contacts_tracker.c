@@ -153,9 +153,9 @@ void list_contacts(graph_t *g)
                         {
                                 if (j != 0)
                                 {
-                                        printf(", ");
+                                        printf("| ");
                                 }
-                                printf("%s", g->people[j].name);
+                                printf("%s, %s", g->people[j].name, g->people[j].phone_number);
                         }
                 }
                 printf("\n");
@@ -205,7 +205,7 @@ void bfs_trace_contacts(graph_t *g, const char *criminal_name)
                 int current_index = queue[front++];
                 int current_level = level[current_index];
 
-                printf("Level %d: %s\n", current_level, g->people[current_index].name);
+                printf("Level %d: %s, %s\n", current_level, g->people[current_index].name, g->people[current_index].phone_number);
 
                 for (int i = 0; i < g->num_people; i++)
                 {
