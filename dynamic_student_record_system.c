@@ -10,14 +10,18 @@ typedef struct student_s
         int id;
         char name[100];
         float grade;
-        int color; /* RED | BLACK */
+        int color;
         struct student_s *left, *right, *parent;
 } student_t;
 
+student_t *root = NULL;
+student_t *NIL;
+int unique_id = 1;
+
 void insert_student(char *name, float grade);
 void delete_student(int id);
-student_t *search_student(int id);
 void inorder_traversal(student_t *node);
+student_t *search_student_by_id(student_t *node, int id);
 void update_student(int id, char *new_name, float new_grade);
 student_t *create_node(int id, char *name, float grade);
 void left_rotate(student_t *x);
@@ -27,16 +31,16 @@ void rb_transplant(student_t *u, student_t *v);
 student_t *tree_minimum(student_t *x);
 void rb_delete_fixup(student_t *x);
 
-student_t *root = NULL;
-student_t *NIL;
-int unique_id = 1;
-
-int main()
+void initialize_nil_node()
 {
         NIL = (student_t *)malloc(sizeof(student_t));
         NIL->color = BLACK;
-        NIL->left = NIL->right = NIL->parent = NIL;
+        NIL->left = NIL->right = NIL->parent = NULL;
+}
 
+int main()
+{
+        initialize_nil_node();
         root = NIL;
 
         int choice, id;
@@ -45,7 +49,7 @@ int main()
 
         while (1)
         {
-                printf("\n1. Add Student\n2. Delete Student\n3. Search Student\n4. Display All Students\n5. Update Student\n6. Exit\n");
+                printf("\n1. Add Student\n2. Delete Student\n3. Search Student by ID\n4. Display All Students\n5. Update Student\n6. Exit\n");
                 printf("Enter your choice: ");
                 scanf("%d", &choice);
 
@@ -72,7 +76,7 @@ int main()
                 case 3:
                         printf("Enter student ID to search: ");
                         scanf("%d", &id);
-                        student_t *student = search_student(id);
+                        student_t *student = search_student_by_id(root, id);
                         if (student != NIL)
                                 printf("ID: %d, Name: %s, Grade: %.2f\n", student->id, student->name, student->grade);
                         else
@@ -116,7 +120,7 @@ student_t *create_node(int id, char *name, float grade)
         strcpy(new_node->name, name);
         new_node->grade = grade;
         new_node->color = RED;
-        new_node->left = new_node->right = new_node->parent = NIL;
+        new_node->left = new_node->right = new_node->parent = NIL; // All new nodes point to NIL initially
         return new_node;
 }
 
@@ -212,24 +216,41 @@ void insert_student(char *name, float grade)
         student_t *y = NIL;
         student_t *x = root;
 
+        printf("Inserting student: %s\n", name);
+
         while (x != NIL)
         {
                 y = x;
                 if (strcmp(z->name, x->name) < 0)
+                {
+                        printf("Going left of %s\n", x->name);
                         x = x->left;
+                }
                 else
+                {
+                        printf("Going right of %s\n", x->name);
                         x = x->right;
+                }
         }
 
         z->parent = y;
         if (y == NIL)
+        {
+                printf("Inserting %s as root\n", z->name);
                 root = z;
+        }
         else if (strcmp(z->name, y->name) < 0)
+        {
+                printf("Inserting %s as left child of %s\n", z->name, y->name);
                 y->left = z;
+        }
         else
+        {
+                printf("Inserting %s as right child of %s\n", z->name, y->name);
                 y->right = z;
+        }
 
-        rb_insert_fixup(z);
+        // rb_insert_fixup(z);
 }
 
 void rb_transplant(student_t *u, student_t *v)
@@ -320,45 +341,12 @@ void rb_delete_fixup(student_t *x)
         x->color = BLACK;
 }
 
-void inorder_traversal(student_t *node)
-{
-        if (node != NIL)
-        {
-                inorder_traversal(node->left);
-                printf("ID: %d, Name: %s, Grade: %.2f\n", node->id, node->name, node->grade);
-                inorder_traversal(node->right);
-        }
-}
-
-student_t *search_student(int id)
-{
-        student_t *current = root;
-        while (current != NIL && current->id != id)
-        {
-                if (id < current->id)
-                        current = current->left;
-                else
-                        current = current->right;
-        }
-        return current;
-}
-
-void update_student(int id, char *new_name, float new_grade)
-{
-        student_t *student = search_student(id);
-        if (student != NIL)
-        {
-                strcpy(student->name, new_name);
-                student->grade = new_grade;
-        }
-}
-
 void delete_student(int id)
 {
-        student_t *z = search_student(id);
+        student_t *z = search_student_by_id(root, id);
         if (z == NIL)
         {
-                printf("Student with ID %d not found.\n", id);
+                printf("Student not found.\n");
                 return;
         }
 
@@ -398,6 +386,42 @@ void delete_student(int id)
         if (y_original_color == BLACK)
                 rb_delete_fixup(x);
 
-        free(z);
-        printf("Student with ID %d deleted.\n", id);
+        printf("Student deleted successfully.\n");
+}
+
+student_t *search_student_by_id(student_t *node, int id)
+{
+        if (node == NIL)
+                return NIL;
+
+        if (node->id == id)
+                return node;
+
+        student_t *left_search = search_student_by_id(node->left, id);
+        if (left_search != NIL)
+                return left_search;
+
+        return search_student_by_id(node->right, id);
+}
+
+void inorder_traversal(student_t *node)
+{
+        if (node != NIL)
+        {
+                inorder_traversal(node->left);
+                printf("ID: %d, Name: %s, Grade: %.2f\n", node->id, node->name, node->grade);
+                inorder_traversal(node->right);
+        }
+}
+
+void update_student(int id, char *new_name, float new_grade)
+{
+        student_t *student = search_student_by_id(root, id);
+        if (student == NIL)
+        {
+                printf("Student not found.\n");
+                return;
+        }
+        strcpy(student->name, new_name);
+        student->grade = new_grade;
 }
